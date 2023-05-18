@@ -10,7 +10,7 @@ def cond_prob(table, evidence, evidence_val, target, target_val):
   t_subset = up_table_subset(table, target, 'equals', target_val)
   e_list = up_get_column(t_subset, evidence)
   p_b_a = sum([1 if v==evidence_val else 0 for v in e_list])/len(e_list)
-  return p_b_a
+  return p_b_a + .01  #completely incorrect Laplace smoothing factor
 
 def cond_probs_product(table, evidence_vals, target_col, target_val):
   evidence_cols = up_list_column_names(table)[:-1]
