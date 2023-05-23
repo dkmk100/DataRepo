@@ -37,3 +37,47 @@ def naive_bayes(table, evidence_row, target):
   #return your 2 results in a list
   return [neg, pos]
 
+def metrics(predictionPairsList):
+  #check formatting of pairs list
+  assert isinstance(predictionPairsList,list), 'prediction pairs list mut be a list'
+  for item in predictionPairsList:
+    assert isinstance(item,list), 'prediction pairs must each be lists'
+    assert len(item) == 2, 'prediction pairs must have exactly two items'
+    assert isinstance(item[0],int), 'prediction pairs must contain only integers'
+    assert isinstance(item[1],int), 'prediction pairs must contain only integers'
+    assert item[0] >= 0, 'prediction pair values must be non-negative'
+    assert item[1] >= 0, 'prediction pair values must be non-negative'
+
+  
+  #calculate core of matrix
+  tn = sum([1 if pair==[0,0] else 0 for pair in predictionPairsList])
+  tp = sum([1 if pair==[1,1] else 0 for pair in predictionPairsList])
+  fp = sum([1 if pair==[1,0] else 0 for pair in predictionPairsList])
+  fn = sum([1 if pair==[0,1] else 0 for pair in predictionPairsList])
+
+  #calculate accuraccy
+  if len(predictionPairsList) == 0:
+    print("warning: empty list!");
+    accuracy = 0
+  else:
+    accuracy = sum([1 if x==y else 0 for x,y in predictionPairsList])/len(predictionPairsList)
+  
+  #calculate precision and recall
+  if tp + fp == 0:
+    precision = 0
+  else:
+    precision = tp / (tp + fp)
+  if tp + fn == 0:
+    recall = 0
+  else:
+    recall = tp / (tp + fn)
+
+  #calculate f1 value
+  if precision + recall == 0:
+    f1 = 0
+  else:
+    f1 = (2 * precision * recall) / (precision + recall)
+
+  #finally, collect values in a dictionary and return it
+  dictionary = {'Accuracy': accuracy, 'F1': f1, 'Precision': precision, 'Recall': recall}
+  return dictionary
