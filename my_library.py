@@ -43,8 +43,8 @@ def metrics(predictionPairsList):
   for item in predictionPairsList:
     assert isinstance(item,list), 'prediction pairs must each be lists'
     assert len(item) == 2, 'prediction pairs must have exactly two items'
-    assert isinstance(item[0],int), 'prediction pairs must contain only integers'
-    assert isinstance(item[1],int), 'prediction pairs must contain only integers'
+    assert isinstance(item[0],(int,float)), 'prediction pairs must contain only numbers'
+    assert isinstance(item[1],(int,float)), 'prediction pairs must contain only numbers'
     assert item[0] >= 0, 'prediction pair values must be non-negative'
     assert item[1] >= 0, 'prediction pair values must be non-negative'
 
@@ -81,3 +81,35 @@ def metrics(predictionPairsList):
   #finally, collect values in a dictionary and return it
   dictionary = {'Accuracy': accuracy, 'F1': f1, 'Precision': precision, 'Recall': recall}
   return dictionary
+
+def try_archs(full_table, target, architectures, thresholds, printTables = True, targetMetric = "Accuracy"):
+  train_table, test_table = up_train_test_split(full_table, target, .4)
+  for architecture in architectures:
+
+    probs = up_neural_net(train_table, test_table, architecture, target)
+    pos_probs = [p for n,p in probs]
+    k_actuals = up_get_column(test_table, target)  
+    #wrangle k_actuals to ints for metrics function
+    k_actuals = [round(k) for k in k_actuals ]
+
+    #loop through thresholds
+    all_mets = []
+    for t in thresholds:
+      all_predictions = [1 if pos>t else 0 for pos in pos_probs]
+      pred_act_list = up_zip_lists(all_predictions, k_actuals)
+      mets = metrics(pred_act_list)
+      mets['Threshold'] = t
+      all_mets = all_mets + [mets]
+
+    #still not sure why we don't just save these to a list
+    #easier to use and less cluttered
+    metrics_table = up_metrics_table(all_mets)
+
+    metric_col = up_get_column(metrics_table,targetMetric)
+
+    print(f'Architecture: {architecture}')
+    print("Best " + targetMetric + ": "+str(max(metric_col)))
+    if printTables:
+      print(up_metrics_table(all_mets))
+
+  return None  #main use is to print out threshold tables, not return anything useful.
