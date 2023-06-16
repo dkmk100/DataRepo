@@ -126,7 +126,7 @@ def try_archs(full_table, target, architectures, thresholds, printTables = True,
 
     probs = up_neural_net(train_table, test_table, architecture, target)
     pos_probs = [p for n,p in probs]
-    k_actuals = up_get_column(test_table, target)  
+    k_actuals = up_get_column(test_table, target)
     #wrangle k_actuals to ints for metrics function
     k_actuals = [round(k) for k in k_actuals ]
 
@@ -145,8 +145,20 @@ def try_archs(full_table, target, architectures, thresholds, printTables = True,
 
     metric_col = up_get_column(metrics_table,targetMetric)
 
+    best = max(metric_col)
+
+    #new stuff added durign final: shows best threshold even when not printing tables
+    bestColumnId = up_list_column_names(metrics_table).index(targetMetric)
+    thresholdColumnId = up_list_column_names(metrics_table).index("Threshold")
+    best_threshold = up_table_to_list(metrics_table)
+
+    targets = up_get_column(metrics_table,targetMetric)
+    bestTargetPos = targets.index(best)
+    bestThreshold = up_table_to_list(metrics_table)[bestTargetPos][thresholdColumnId]
+
     print(f'Architecture: {architecture}')
     print("Best " + targetMetric + ": "+str(max(metric_col)))
+    print("with threshold: "+str(bestThreshold))
     if printTables:
       print(up_metrics_table(all_mets))
 
