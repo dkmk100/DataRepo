@@ -82,6 +82,44 @@ def metrics(predictionPairsList):
   dictionary = {'Accuracy': accuracy, 'F1': f1, 'Precision': precision, 'Recall': recall}
   return dictionary
 
+
+#make sure this makes it into your library
+from sklearn.ensemble import RandomForestClassifier  
+
+#if both return tree and return table are true, it returns an ordered pair of tree, table
+#you can provide thresholds, if not it test from .1 to .95 in .05 increments
+def run_random_forest(train, test, target, n, return_tree = False, return_table = False, thresholds = None):
+  if thresholds == None:
+    thresholds = [.1, .15, .2, .25, .3, .35, .4, .45, .5, .55, .6, .65, .7, .75, .8, .85, .9, .95]
+  #your code below
+  X = up_drop_column(train, target)
+  y = up_get_column(train, target)  
+  k_feature_table = up_drop_column(test, target) 
+  k_actuals = up_get_column(test, target)  
+
+  #wrangle k_actuals to ints for metrics function 
+  k_actuals = [round(k) for k in k_actuals ]
+
+  clf = RandomForestClassifier(n_estimators=n, max_depth=2, random_state=0)  
+  clf.fit(X, y)  #builds the trees as specified above
+  probs = clf.predict_proba(k_feature_table)
+  pos_probs = [p for n,p in probs]  #probs is list of [neg,pos] like we are used to seeing.
+  pos_probs[:5]
+  all_mets = []
+  for t in thresholds:
+    all_predictions = [1 if pos>t else 0 for pos in pos_probs]
+    pred_act_list = up_zip_lists(all_predictions, k_actuals)
+    mets = metrics(pred_act_list)
+    mets['Threshold'] = t
+    all_mets = all_mets + [mets]
+
+  metrics_table = up_metrics_table(all_mets)
+  if return_table:
+    return (clf,metrics_table) if return_tree else metrics_table
+  else:
+    print(metrics_table)  #output we really want - to see the table
+    return clf if return_tree else None
+
 def try_archs(full_table, target, architectures, thresholds, printTables = True, targetMetric = "Accuracy"):
   train_table, test_table = up_train_test_split(full_table, target, .4)
   for architecture in architectures:
